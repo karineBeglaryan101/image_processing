@@ -1,0 +1,13 @@
+Karine = 6
+Beglaryan = 9
+A-B = 1
+
+n= 6 + 9 + 1 =16
+
+(–0.00165 n^3 + 0.12384 n^2– 2.33779 n + 14.1165)
+
+-6,7584+ 31,70304-37,40464+14,1165= 1.6293  approximately 2
+id = 2
+
+When indexing the dataset in alphabetical order I get car-s-91.crs and 
+car-s-91.stu.
