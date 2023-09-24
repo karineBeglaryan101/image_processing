@@ -1,59 +1,61 @@
 import ij.ImagePlus;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
+import ij.process.Blitter;
 
 public class Task2 implements PlugInFilter {
 
-    @Override
-    public int setup(String arg, ImagePlus imp) {
+    public int setup(String args, ImagePlus im) {
         return DOES_ALL;
     }
 
-    @Override
-    public void run(ImageProcessor ip) {
-        int width = ip.getWidth();
-        int height = ip.getHeight();
+    public void run(ImageProcessor inputIP) {
+        int width = inputIP.getWidth();
+        int height = inputIP.getHeight();
 
-        int midX = width / 2;
-        int midY = height / 2;
+        int leftWidth = width / 2;
+        int rightWidth = width / 2;
+        int heightTopBottom = height / 2;
 
-        ImageProcessor leftPanel = ip.duplicate();
-        ImageProcessor rightPanel = ip.duplicate();
-	if (width % 2 == 0) {
-            leftPanel.setRoi(0, 0, midX + 1, height);
-            rightPanel.setRoi(midX + 1, 0, midX - 1, height);
-        } else {
-            leftPanel.setRoi(0, 0, midX, height);
-            rightPanel.setRoi(midX, 0, width - midX, height);
+        ImageProcessor left = inputIP.duplicate();
+        ImageProcessor right = inputIP.duplicate();
+
+        left.setRoi(0, 0, leftWidth, height);
+        right.setRoi(leftWidth, 0, rightWidth, height);
+
+        left = left.crop();
+        right = right.crop();
+
+        swapPixels(left, right);
+
+        ImageProcessor top = inputIP.duplicate();
+        ImageProcessor bottom = inputIP.duplicate();
+
+        top.setRoi(0, 0, width, heightTopBottom);
+        bottom.setRoi(0, heightTopBottom, width, height - heightTopBottom);
+
+        top = top.crop();
+        bottom = bottom.crop();
+
+        swapPixels(top, bottom);
+
+        inputIP.copyBits(left, 0, 0, Blitter.COPY);
+        inputIP.copyBits(right, leftWidth, 0, Blitter.COPY);
+        inputIP.copyBits(top, 0, 0, Blitter.COPY);
+        inputIP.copyBits(bottom, 0, heightTopBottom, Blitter.COPY);
+    }
+
+    private void swapPixels(ImageProcessor ip1, ImageProcessor ip2) {
+        int width = ip1.getWidth();
+        int height = ip1.getHeight();
+
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                int pixel1 = ip1.getPixel(i, j);
+                int pixel2 = ip2.getPixel(i, j);
+                ip1.putPixel(i, j, pixel2);
+                ip2.putPixel(i, j, pixel1);
+            }
         }
-
-        leftPanel = leftPanel.crop();
-        rightPanel = rightPanel.crop();
-
-        leftPanel.flipHorizontal();
-        rightPanel.flipHorizontal();
-
-        ImageProcessor topPanel = ip.duplicate();
-        ImageProcessor bottomPanel = ip.duplicate();
-
-        if (height % 2 == 0) {
-            topPanel.setRoi(0, 0, width, midY + 1);
-            bottomPanel.setRoi(0, midY + 1, width, midY - 1);
-        } else {
-            topPanel.setRoi(0, 0, width, midY);
-            bottomPanel.setRoi(0, midY, width, height - midY);
-        }
-
-        topPanel = topPanel.crop();
-        bottomPanel = bottomPanel.crop();
-
-        topPanel.flipVertical();
-        bottomPanel.flipVertical();
-
-        ip.insert(leftPanel, 0, 0);
-        ip.insert(rightPanel, midX, 0);
-        ip.insert(topPanel, 0, 0);
-        ip.insert(bottomPanel, 0, midY);
     }
 }
-
